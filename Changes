@@ -1,4 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.001     2012-01-19 02:36:58 Europe/Berlin
 	- First working version of plugin
