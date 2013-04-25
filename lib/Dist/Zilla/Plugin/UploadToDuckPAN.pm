@@ -4,6 +4,8 @@ package Dist::Zilla::Plugin::UploadToDuckPAN;
 use Moose;
 extends 'Dist::Zilla::Plugin::UploadToCPAN';
 
+use Dist::Zilla::Plugin::UploadToCPAN;
+
 use Scalar::Util qw(weaken);
 
 has '+credentials_stash' => (
@@ -39,7 +41,10 @@ has '+password' => (
 has '+uploader' => (
   default => sub {
     my ($self) = @_;
- 
+
+    require CPAN::Uploader;
+    CPAN::Uploader->VERSION('0.103004');  # require HTTPS
+
     my $uploader = Dist::Zilla::Plugin::UploadToCPAN::_Uploader->new({
       user     => $self->username,
       password => $self->password,
