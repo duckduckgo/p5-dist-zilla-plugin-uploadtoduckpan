@@ -15,7 +15,7 @@ has '+credentials_stash' => (
 has 'upload_uri' => (
 	is => 'ro',
 	isa => 'Str',
-	default => sub { 'https://dukgo.com/duckpan/do/upload' }
+	default => sub { 'https://dukgo.com/duckpan/upload' }
 );
 sub has_upload_uri { 1 }
 
