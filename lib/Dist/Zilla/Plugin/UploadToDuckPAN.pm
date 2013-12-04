@@ -7,24 +7,33 @@ extends 'Dist::Zilla::Plugin::UploadToCPAN';
 use Dist::Zilla::Plugin::UploadToCPAN;
 
 use Scalar::Util qw(weaken);
+use Moose::Util::TypeConstraints;
 
 has '+credentials_stash' => (
-	default => sub { '%DUKGO' }
+	default => sub { '%DUCKPAN' }
 );
 
 has 'upload_uri' => (
 	is => 'ro',
 	isa => 'Str',
-	default => sub { 'https://dukgo.com/duckpan/upload' }
+	default => sub { 'https://duck.co/duckpan/upload' }
 );
 sub has_upload_uri { 1 }
+
+has _legacy_credentials_stash_obj => (
+  is   => 'ro',
+  isa  => maybe_type( class_type('Dist::Zilla::Stash::DUKGO') ),
+  lazy => 1,
+  init_arg => undef,
+  default  => sub { $_[0]->zilla->stash_named('%DUKGO') },
+);
 
 has '+username' => (
   default  => sub {
     my ($self) = @_;
     return $self->_credential('username')
-        || $self->pause_cfg->{user}
-        || $self->zilla->chrome->prompt_str("dukgo.com username: ");
+        || ( $self->_legacy_credentials_stash_obj && $self->_legacy_credentials_stash_obj->username )
+        || $self->zilla->chrome->prompt_str("duck.co username: ");
   },
 );
  
@@ -33,8 +42,8 @@ has '+password' => (
   default  => sub {
     my ($self) = @_;
     return $self->_credential('password')
-        || $self->pause_cfg->{password}
-        || $self->zilla->chrome->prompt_str('dukgo.com password: ', { noecho => 1 });
+        || ( $self->_legacy_credentials_stash_obj && $self->_legacy_credentials_stash_obj->password )
+        || $self->zilla->chrome->prompt_str('duck.co password: ', { noecho => 1 });
   },
 );
 
@@ -52,7 +61,7 @@ has '+uploader' => (
            ? (subdir => $self->subdir) : ()),
       ($self->has_upload_uri
            ? (upload_uri => $self->upload_uri) : ()),
-      target => 'dukgo.com',
+      target => URI->new($self->upload_uri)->host,
     });
  
     $uploader->{'Dist::Zilla'}{plugin} = $self;
@@ -74,7 +83,7 @@ In dist.ini:
   
 In ~/.dzil/config:
 
-  [%DUKGO]
+  [%DUCKPAN]
   username = youruserondukgocom
   password = yourpasswordondukgo.com
 
